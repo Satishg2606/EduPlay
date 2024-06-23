@@ -1,0 +1,6 @@
+1) using atlas for database project.
+2) password : 12345 
+3) install mongoose express 
+4) always use "require" to use .env file  : but to maintain the consistency in code we can use an experimental feature:
+            - in package.json file -> script section : add "nodemon -r dotenv/config --experimental-json-modules src/index.js" can refer package.json
+5) To import modules always provide full path "with its extenstion". : faced error because of this !!!

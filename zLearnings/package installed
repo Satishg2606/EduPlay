@@ -1,0 +1,9 @@
+npm i express mongoose 
+npm i mongoose-aggregate-paginate-v2
+npm i cors
+npm i jsonwebtoken bcrypt
+npm i cookie-parser
+npm i dotenv
+npm i multer cloudinary
+npm install --save-dev nodemon prettier
+npm install 

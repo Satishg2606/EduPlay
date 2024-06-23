@@ -1,0 +1,10 @@
+#packages needed...
+1)cloudinary  2)multer or express-file-upload.(we are using multer).
+
+#Steps:-
+
+1) make a middleware using multer that is setup for multer .
+2) make a utility so that it can be used anywhere in the file.
+3) in util/cloudinary.js - a) config for cloudinary,
+                           b) const response = await cloudinary.uploader.upload(localFilePath);
+                           c) if success then return response, else unlink the file so it  is removed from the local temp storage(public/temp).
