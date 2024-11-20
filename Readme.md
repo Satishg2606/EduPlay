@@ -4,17 +4,6 @@ Welcome to the **EduPlay** backend repository! EduPlay is a next-gen video strea
 
 ---
 
-## 🌟 Table of Contents
-
-- [About EduPlay](#about-eduplay)
-- [Tech Stack](#tech-stack)
-- [Run Locally](#run-locally)
-- [Core Features](#core-features)
-- [API Overview](#api-overview)
-- [Contributing](#contributing)
-- [License](#license)
-
----
 
 ## 📖 About EduPlay
 
