@@ -52,12 +52,10 @@ To get a local copy of EduPlay up and running, follow these steps:
    ```bash
    git clone https://github.com/Satishg2606/EduPlay-Backend.git
    cd eduplay-backend
-
 ### Demo Images 
-![Login](#/public/temp/Login.png)
-![Signup](#/public/temp/signup.png)
-![Dashboard](#/public/temp/Dashboard.png)
-![Video](#/public/temp/Videopage.png)
-
+![Login](public/temp/Login.png)
+![Signup](public/temp/signup.png)
+![Dashboard](public/temp/Dashboard.png)
+![Video](public/temp/Videopage.png)
 
 
