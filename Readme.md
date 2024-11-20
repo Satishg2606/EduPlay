@@ -54,5 +54,10 @@ To get a local copy of EduPlay up and running, follow these steps:
    cd eduplay-backend
 
 ### Demo Images 
+![Login](#/public/temp/Login.png)
+![Signup](#/public/temp/signup.png)
+![Dashboard](#/public/temp/Dashboard.png)
+![Video](#/public/temp/Videopage.png)
+
 
 
