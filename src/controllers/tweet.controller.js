@@ -33,7 +33,7 @@ const createTweet = asyncHandler(async (req, res) => {
 
 const getUserTweets = asyncHandler(async (req, res) => {
     // TODO: get user tweets
-    const {userId} = req.params
+    const userId = req.params.userId
     const user= await User.findById(userId).select("fullName username avatar coverImage")
     const tweets = await Tweet.aggregate([
         {
@@ -51,14 +51,14 @@ const getUserTweets = asyncHandler(async (req, res) => {
         },
         {
             $addFields:{
-                username:"$user.username",
-                avatar:"$user.avatar",
-                coverImage:'$user.coverImage',
-                fullName:"$user.fullName"
+                username:user.username,
+                avatar:user.avatar,
+                coverImage:user.coverImage,
+                fullName:user.fullName
             }
         }
     ])
-    console.log(tweets);
+    // console.log(tweets);
     if(!tweets){
         throw new ApiError(404,"Tweets Not Found");
     }
@@ -76,7 +76,7 @@ const updateTweet = asyncHandler(async (req, res) => {
     //TODO: update tweet
     const {tweetId} = req.params;
     const { updatedContent } = req.body
-    const { userId } = req.user._id
+    const userId = req.user._id
 
     if(!(tweetId && updatedContent)){
         throw new ApiError(401,"All fields required.")

@@ -1,17 +1,80 @@
 import mongoose, {isValidObjectId} from "mongoose"
+import Fuse from 'fuse.js';
 import {Video} from "../models/video.model.js"
 import {User} from "../models/user.model.js"
 import {ApiError} from "../utils/ApiErrors.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
-import {uploadOnCloudinary,deleteVideoFromCloudinary,uploadVideoOnCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary,deleteVideoFromCloudinary,uploadVideoOnCloudinary, deleteFileFromCloudinary} from "../utils/cloudinary.js"
 import {extractPublicIdFromUrl} from "../utils/getPublicId.js"
 
-//Pending...
+
+
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
-    //TODO: get all videos based on query, sort, pagination
-})
+    const { 
+        page = 1, 
+        limit = 10, 
+        query = "", 
+        sortBy = 'createdAt', 
+        sortType = 'desc', 
+        userId 
+    } = req.query;
+
+    const skip = (page - 1) * limit;
+
+    // Define sorting options
+    const sortOptions = { [sortBy]: sortType === 'asc' ? 1 : -1 };
+
+    // Define initial match filter (if userId is provided)
+    const matchStage = userId ? { userId } : {};
+
+    // Fetch videos from the database
+    const allVideos = await Video.find(matchStage).sort(sortOptions).skip(skip).limit(parseInt(limit));
+
+    // Fetch users data to join with videos
+    const users = await User.find({}, { fullName: 1, username: 1, avatar: 1 }); // Fetch relevant user fields
+
+    // Create a map for quick user lookup
+    const userMap = {};
+    users.forEach(user => {
+        userMap[user._id] = user; // Map user IDs to user data
+    });
+
+    // If a query is provided, perform fuzzy search using Fuse.js
+    let data = allVideos;
+    if (query) {
+        // Create a Fuse instance
+        const fuse = new Fuse(allVideos, {
+            keys: ['title', 'description'], // Specify searchable fields
+            includeScore: true, // Include score for search relevance
+            threshold: 0.3, // Adjust the threshold for fuzzy matching (0.0 = perfect match, 1.0 = no match)
+        });
+
+        // Perform the search
+        const results = fuse.search(query);
+        data = results.map(result => result.item); // Get the matched items
+    }
+
+    // Map user data to the video data
+    const videosWithUsers = data.map(video => ({
+        ...video.toObject(), // Convert Mongoose document to plain object
+        user: userMap[video.owner], // Attach user data
+    }));
+
+    // Count total documents based on the search query or match stage
+    const totalVideos = query 
+        ? videosWithUsers.length // If searching, return the length of the results
+        : await Video.countDocuments(matchStage);
+
+    res.status(200).json(new ApiResponse(200, {
+        videos: videosWithUsers,
+        currentPage: page,
+        totalPages: Math.ceil(totalVideos / limit),
+        totalVideos
+    }, "Retrieved videos successfully"));
+});
+
+
 
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description} = req.body;
@@ -81,6 +144,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
     // TODO: get video, upload to cloudinary, create video
 })
 
+
+
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: get video by id
@@ -104,10 +169,13 @@ const getVideoById = asyncHandler(async (req, res) => {
     );
 })
 
+
+
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     const {title , description } = req.body;
-    const {thumbnailLocalPath} = req.file?.path;
+    const thumbnail = req.file?.path;
+    console.log(thumbnail);
     //TODO: update video details like title, description, thumbnail
     if( !(title || description || thumbnail))
     {
@@ -115,6 +183,7 @@ const updateVideo = asyncHandler(async (req, res) => {
     }
     const video = await Video.findById(videoId);
     const prevThumbnail = video.thumbnail;
+    console.log(video.thumbnail);
     if(title)
     {
         video.title=title;
@@ -123,9 +192,9 @@ const updateVideo = asyncHandler(async (req, res) => {
     {
         video.description=description;
     }
-    if(thumbnailLocalPath)
+    if(thumbnail)
     {
-        const newThumbnail=await uploadOnCloudinary(thumbnailLocalPath);
+        const newThumbnail=await uploadOnCloudinary(thumbnail);
         if(!newThumbnail)
         {
             throw new ApiError(500,"Problme in uploading thumbnail");
@@ -139,6 +208,10 @@ const updateVideo = asyncHandler(async (req, res) => {
     if(!newVideo){
         throw new ApiError(500,"Error while saving the video Details");
     }
+
+    const public_id=extractPublicIdFromUrl(prevThumbnail);
+    const deleteImage=await deleteFileFromCloudinary(public_id);
+    console.log("-------",deleteImage)
     return res.status(200).json(
         new ApiResponse(200,
             {
@@ -149,6 +222,8 @@ const updateVideo = asyncHandler(async (req, res) => {
     );
     
 })
+
+
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
@@ -164,18 +239,20 @@ const deleteVideo = asyncHandler(async (req, res) => {
         console.log("prev Video Not removed from cloudinary.")
     }
 
-    const deleteVideo=await Video.deleteOne(videoId);
+    const deleteVideo=await Video.deleteOne({_id:videoId});
 
     if(!deleteVideo){
         throw new ApiError(400,"videoId Not found.");
     }
-    return res.status.json(
+    return res.status(200).json(
         new ApiResponse(200,{
-            deleteVideo
+            
         },
     "Video Deleted Successfully.")
     )
 })
+
+
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params
@@ -198,6 +275,8 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
         )
     )
 })
+
+
 
 export {
     getAllVideos,

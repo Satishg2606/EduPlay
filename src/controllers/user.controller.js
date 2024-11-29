@@ -6,6 +6,9 @@ import { deleteFileFromCloudinary, uploadOnCloudinary } from "../utils/cloudinar
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { json } from "express";
 import mongoose from "mongoose";
+import { sendOTP } from "./otp.controller.js";
+import authRouter from "../routes/auth.router.js";
+import { OTP } from "../models/otp.model.js";
 
 const generateAccessAndRefreshToken = async (UserId) => {
   try {
@@ -43,7 +46,7 @@ const registerUser = asyncHandler(async (req, res) => {
   //check for user creation
   //return response
 
-  const { fullName, email, username, password } = req.body;
+  const { fullName, email, username, password , otp } = req.body;
   // console.log(req.body);
 
   if (
@@ -51,6 +54,11 @@ const registerUser = asyncHandler(async (req, res) => {
   ) {
     throw new ApiError(400, "All fields are required");
   }
+  const otpEntry = await OTP.findOne({ email, otp });
+  if (!otpEntry) {
+    return res.status(400).json({ message: "Invalid or expired OTP." });
+  }
+
   const existedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
@@ -88,7 +96,8 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!avatarImage) {
     throw new ApiError(500, "Image could not upload properly.");
   }
-
+  // const result = await sendOTP({email});
+  // console.log(result);
   const userData = await User.create({
     fullName,
     username: username.toLowerCase(),
@@ -101,6 +110,7 @@ const registerUser = asyncHandler(async (req, res) => {
     "-password -refreshToken"
   );
   if (!userData) {
+    console.log("error");
     throw new ApiError(500, "Unable to create account");
   }
   res
@@ -363,7 +373,6 @@ const updateAvatarImage = asyncHandler(async(req,res)=>{
 
 })
 
-
 const updateCoverImage = asyncHandler(async(req,res)=>{
   //get the New file path
   //get the old image url
@@ -410,7 +419,6 @@ const updateCoverImage = asyncHandler(async(req,res)=>{
   )
 
 })
-
 
 const getUserChannelProfile = asyncHandler(async(req,res)=>{
   const {username}= req.params;

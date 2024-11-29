@@ -13,6 +13,29 @@ const uploadOnCloudinary = async(localFilePath)=>{
         if(!localFilePath) return null;
         else{
             const response = await cloudinary.uploader.upload(localFilePath);
+            console.log("File has been uploaded on cloudinary : ",response.url);
+            if(localFilePath)
+                fs.unlinkSync(localFilePath);
+            return response;
+        }
+
+    }catch(error){
+        console.log("--------",error)
+        if(localFilePath)
+            fs.unlinkSync(localFilePath);//remove the locally saved temporary file.
+        return null;
+    }
+}
+const uploadPdfOnCloudinary = async(localFilePath,type="auto")=>{
+    try{
+        if(!localFilePath) return null;
+        else{
+            const response = await cloudinary.uploader.upload(localFilePath,
+                {
+                    resource_type: type,
+                    format : "pdf"
+                }
+            );
             // console.log("File has been uploaded on cloudinary : ",response.url);
             fs.unlinkSync(localFilePath);
             return response;
@@ -24,6 +47,7 @@ const uploadOnCloudinary = async(localFilePath)=>{
         return null;
     }
 }
+
 const uploadVideoOnCloudinary = async(localFilePath,type="auto")=>{
     try{
         if(!localFilePath) return null;
@@ -48,10 +72,9 @@ const uploadVideoOnCloudinary = async(localFilePath,type="auto")=>{
 
 const deleteFileFromCloudinary= async(cloudFilePublicId)=>{
     try {
-        cloudinary.api
+        const response =cloudinary.api
             .delete_resources([cloudFilePublicId], 
-            { type: 'upload', resource_type: 'image' })
-            .then(console.log);
+            { type: 'upload', resource_type: 'image' });
 
 
         // console.log(success)
