@@ -1,6 +1,6 @@
-# EduPlay Backend 🚀
+# EduPlay 🚀
 
-Welcome to the **EduPlay** backend repository! EduPlay is a next-gen video streaming platform designed to provide an engaging blend of educational and entertaining content. This backend supports all server-side logic, user management, and media operations for the EduPlay platform.
+Welcome to the **EduPlay** repository! EduPlay is a next-gen video streaming platform designed to provide an engaging blend of educational and entertaining content. This backend supports all server-side logic, user management, and media operations for the EduPlay platform.
 
 ---
 
